@@ -40,8 +40,14 @@ class ContactController extends Controller
     public function update(Request $request, string $id)
     {
         $contact = Contact::find($id);
+
+        if (!$contact) {
+            return $this->sendError('Contact not found.', 404);
+        }
+
+        $request->validate(['name' => 'required', 'email' => 'required', 'message' => 'required']);
         $contact->update($request->all());
-        return response()->json($contact, 200);
+        return $this->sendResponse($contact, 'Contact updated successfully.', 200);
     }
 
     /**
@@ -49,7 +55,12 @@ class ContactController extends Controller
      */
     public function destroy(string $id)
     {
-        Contact::destroy($id);
-        return response()->json(null, 204);
+        $contact = Contact::find($id);
+
+        if (!$contact) {
+            return $this->sendError('Contact not found.', 404);
+        }
+
+        return $this->sendResponse(null, 'Contact deleted successfully.', 204);
     }
 }

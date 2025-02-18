@@ -40,8 +40,14 @@ class DescriptionController extends Controller
     public function update(Request $request, string $id)
     {
         $description = Description::find($id);
+
+        if (!$description) {
+            return $this->sendError('Description not found.', 404);
+        }
+
+        $request->validate(['content' => 'required']);
         $description->update($request->all());
-        return response()->json($description, 200);
+        return $this->sendResponse($description, 'Description updated successfully.', 200);
     }
 
     /**

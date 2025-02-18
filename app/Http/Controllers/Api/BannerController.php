@@ -41,7 +41,7 @@ class BannerController extends Controller
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('banners', 'public');
         } else {
-            return response()->json(['error' => 'Image is required'], 400);
+            return $this->sendError('Image not found.', 400);
         }
 
         $banner = Banner::create([
@@ -60,7 +60,7 @@ class BannerController extends Controller
         $banner = Banner::find($id);
 
         if (!$banner) {
-            return response()->json(['error' => 'Banner not found'], 404);
+            return $this->sendError('Banner id not found.', 404);
         }
 
         $banner = [
@@ -87,10 +87,22 @@ class BannerController extends Controller
 
         $request->validate([
             'title' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        return $this->sendResponse($banner, 'Banner updated successfully.');
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('banners', 'public');
+            Storage::disk('public')->delete($banner->image);
+        } else {
+            $imagePath = $banner->image;
+        }
+
+        $banner->update([
+            'title' => $request->title,
+            'image' => $imagePath,
+        ]);
+
+        return $this->sendResponse($banner, 'Banner updated successfully.', 200);
     }
 
     /**
@@ -98,7 +110,18 @@ class BannerController extends Controller
      */
     public function destroy(string $id)
     {
-        Banner::destroy($id);
+        $banner = Banner::find($id);
+
+        if (!$banner) {
+            return $this->sendError('Banner not found.', 404);
+        }
+
+        $imagePath = str_replace('storage/', 'public/', $banner->image);
+        if ($banner->image && Storage::disk('public')->exists($imagePath)) {
+            Storage::disk('public')->delete($imagePath);
+        }
+        $banner->delete();
+
         return $this->sendResponse(null, 'Banner deleted successfully.', 200);
     }
 }
