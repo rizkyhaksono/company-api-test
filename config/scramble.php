@@ -78,8 +78,8 @@ return [
      */
     'servers' => [
         'Local' => 'api',
-        'Dev' => 'https://api.company.natee.me',
-        'Prod' => 'https://api.company.natee.me',
+        'Dev' => 'https://api.company.natee.me/api',
+        'Prod' => 'https://api.company.natee.me/api',
     ],
 
     'middleware' => [
